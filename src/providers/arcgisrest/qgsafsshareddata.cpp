@@ -127,6 +127,15 @@ bool QgsAfsSharedData::getObjectIds( QString &errorMessage )
 {
   errorMessage.clear();
 
+  // LOCAL PATCH (not upstream, see qgis/QGIS#68312): several render threads can arrive here before the
+  // first fetch has finished. Only one may query and fill the containers; the others wait, then return.
+  QMutexLocker fetchLocker( &mObjectIdsFetchMutex );
+  {
+    QgsReadWriteLocker readLocker( mReadWriteLock, QgsReadWriteLocker::Read );
+    if ( mHasFetchedObjectIds )
+      return true;
+  }
+
   // Read OBJECTIDs of all features: these may not be a continuous sequence,
   // and we need to store these to iterate through the features. This query
   // also returns the name of the ObjectID field.
@@ -151,6 +160,8 @@ bool QgsAfsSharedData::getObjectIds( QString &errorMessage )
   }
 
   const QVariantList objectIds = objectIdData.value( u"objectIds"_s ).toList();
+  // LOCAL PATCH: the shared containers are written under the write lock
+  QgsReadWriteLocker writeLocker( mReadWriteLock, QgsReadWriteLocker::Write );
   mFeatureIdsToObjectIds.reserve( mFeatureIdsToObjectIds.size() + objectIds.size() );
   mObjectIdToFeatureId.reserve( mObjectIdToFeatureId.size() + objectIds.size() );
   for ( const QVariant &objectId : objectIds )

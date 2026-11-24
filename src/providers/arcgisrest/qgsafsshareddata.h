@@ -91,7 +91,7 @@ class QgsAfsSharedData
 
     friend class QgsAfsProvider;
     mutable QReadWriteLock mReadWriteLock { QReadWriteLock::Recursive };
-    // LOCAL PATCH (not upstream, see qgis/QGIS#68312): serialises the object id fetch so only one thread queries and fills the id containers
+    // Serialises the object id fetch so only one thread queries and fills the id containers
     QMutex mObjectIdsFetchMutex;
     QgsDataSourceUri mDataSource;
     bool mHasFetchedObjectIds = false;

@@ -127,7 +127,7 @@ bool QgsAfsSharedData::getObjectIds( QString &errorMessage )
 {
   errorMessage.clear();
 
-  // Several render threads can arrive here before the first fetch has finished. 
+  // Several render threads can arrive here before the first fetch has finished.
   // Only one may query and fill the containers; the others wait, then return.
   QMutexLocker fetchLocker( &mObjectIdsFetchMutex );
   {
